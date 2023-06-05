@@ -151,7 +151,7 @@ function login( params ) {
                 session.user.id          = body.data.user.id;
                 session.user.accountType = body.data.user.accountType;
 
-                console.debug( "loging successful:", session.user.id );
+                console.debug( "logging successful:", session.user.id );
                 resolve( "renewed" );
 
               } else { // otherwise get user data
@@ -659,7 +659,7 @@ function engine( params ) {
       localTMZ - params.firstFullDays * 86400;
 
   function my() {
-    return getProCredentials( params, 0 ) // initial credentals check
+    return getProCredentials( params, 0 ) // initial credentials check
     .then ( () => {
       return promiseRetry(
         { minTimeout: 10000, retries: params.maxFailures - 1, factor: 1.5 },
@@ -733,7 +733,7 @@ if( !module.parent ) {
   switch( args[0] ) {
 
     case "login":
-      return getProCredentials( params, 0 ) // initial credentals check
+      return getProCredentials( params, 0 ) // initial credentials check
       .then ( () => {
         return promiseRetry(
           { minTimeout: 3000, retries: params.maxFailures - 1, factor: 1.5   },
