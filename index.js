@@ -22,6 +22,8 @@
  * latest records from LibreView's server into NS.
  */
 
+// spell-checker:ignore (names) LibreView Nightscout (people) Sergey Skobkarev (vars) CUSTOMCONNSTR, DeviceStatus, LVAPI, LVConnect, LVServer, creds, lvAPIVersion
+
 'use strict';
 
 const Promise = require('promise'),
