@@ -51,13 +51,13 @@ process.stderr.write(util.format(`timeZoneName: ${timeZoneName}`) + '\n');
 process.stderr.write(util.format(`localTMZ: ${localTMZ}`) + '\n');
 
 /**
- * Downloads credentials,json from url if it is not the first attempt to log in
+ * Downloads credentials.json from url if it is not the first attempt to log in
  * See credentials.json.example
  */
 function getProCredentials(params, attempt) {
 	return new Promise((resolve, reject) => {
 		if (attempt == 1 || !params.login.proCredentialsUrl || !params.login.proCredentialsKey) {
-			// Not the first attempt to login, cheking if parameters change?
+			// Not the first attempt to login, checking if parameters change?
 			return resolve(true);
 		} else {
 			return request({
@@ -173,17 +173,17 @@ function login(params) {
 												console.debug('redirected to:', session.server);
 												reject(`redirected to ${session.server}`);
 											} else if (body.data.user) { // received user data
-												// allow different patient ID only for Pro accounst
+												// allow different patient ID only for Pro accounts
 												session.user.id = body.data.user.id;
 												session.user.accountType = body.data.user.accountType;
 												session.authToken = body.data.authTicket.token;
 												session.tokenExpires = +new Date() + body.data.authTicket.duration;
 
-												console.debug('loging successful:', session.user.id);
+												console.debug('logging successful:', session.user.id);
 												resolve('renewed');
 											}
 										} else if (body.error) { // login filed
-											reject(`login: Check credentals. Error: ${body.error.message}`);
+											reject(`login: Check credentials. Error: ${body.error.message}`);
 										} else { // no sensible data has been returned
 											reject('login: Unknown response, check connection parameters.');
 										}
@@ -191,7 +191,7 @@ function login(params) {
 								}
 							}
 						} else if (body.error) { // login filed
-							reject(`login: Check credentals. Error: ${body.error.message}`);
+							reject(`login: Check credentials. Error: ${body.error.message}`);
 						} else { // no sensible data has been returned
 							reject('login: Unknown response, check connection parameters.');
 						}
@@ -468,7 +468,7 @@ function downloadReport(url) {
 }
 
 /**
- * Fetch data from LV API server through DailLog report.
+ * Fetch data from LV API server through DailyLog report.
  */
 function fetch() {
 	return getDataSources()
@@ -594,7 +594,7 @@ function toLvapiHost(lvserver) {
 }
 
 /**
- * Flattens arrays in Node.js before vesrion 11
+ * Flattens arrays in Node.js before version 11
  * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/flat
  * @param {array} arr - array to flatten
  * @param {number}  d - recursion depth
