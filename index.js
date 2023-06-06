@@ -682,7 +682,7 @@ module.exports = engine;
 if (!module.parent) {
 	if (readENV('API_SECRET')?.length < min_secret_length) {
 		throw new Error(`API_SECRET should be at least ${min_secret_length} characters long`);
-		process.exit(1);
+		/* process.exit(1); */
 	}
 
 	const params = {
@@ -728,7 +728,6 @@ if (!module.parent) {
 				.catch((err) => {
 					console.debug(err);
 				});
-			break;
 
 		case 'fetch':
 			restoreSession()
@@ -797,11 +796,11 @@ if (!module.parent) {
 
 		default: {
 			const interval = readENV('LVCONNECT_INTERVAL', 30000);
-			let timer = null;
+			/* let timer = null; */
 			(function run() {
 				console.info('Fetching LibreView Data...');
 				engine(params);
-				timer = setTimeout(run, interval);
+				/* timer =  */ setTimeout(run, interval);
 			})();
 			break;
 		}
