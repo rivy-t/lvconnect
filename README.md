@@ -1,5 +1,4 @@
-lvconnect
-=========
+# lvconnect
 
 <!-- spell-checker:ignore (jargon) sitename (names) AzureWebSites Dynos HerokuApp LibreView LVAPI LVConnect Nightscout -->
 
@@ -7,19 +6,22 @@ lvconnect
 
 lvconnect copies your CGM data from LibreView web services to a [Nightscout](https://github.com/Nightscout/cgm-remote-monitor) website. The tool runs as `node.js index.js`, or as a Nightscout plugin, and will attempt to connect to your LibreView account, fetch data and upload to your Nightscout website via its REST API.
 
-### Setup
+## Setup
 
 * Connect to [LibreView](https://www.libreview.com) with a web browser and login to your account. (Is saving the device token required?)
 * Inspect local storage and retrieve the value of the first key within the 'trustedDeviceTokens' object. This will be the `LVCONNECT_TRUSTED_DEVICE_TOKEN` value. This *TOKEN* value should be viable for 14 days.
 * Use `env API_SECRET="123456789012" LVCONNECT_USER_NAME="Roy.Ivy.III@gmail.com" LVCONNECT_PASSWORD="*PASSWORD*" LVCONNECT_TRUSTED_DEVICE_TOKEN="*TOKEN*" node index.js`.
 * Use the "login" argument to verify login...
+
   ```text
   lvconnect: attempt to login # 1
   logging successful: b1087484-2df9-11ed-b7a7-0242ac110008
   patient is the user
   saving session...
   ```
+
 * Use the "fetch" argument to verify data fetch (note: will only fetch *new* data since last login/fetch combination)...
+
   ```text
   reading stored session...
   lvconnect: attempt to login and fetch data # 1
