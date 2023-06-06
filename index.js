@@ -29,7 +29,7 @@
 const Promise = require('promise'),
 	promiseRetry = require('promise-retry'),
 	request = require('request'),
-	qs = require('querystring'),
+	_qs = require('querystring'),
 	crypto = require('crypto'),
 	meta = require('./package.json'),
 	agent = `${meta.name}/${meta.version}`,
@@ -65,7 +65,7 @@ function getProCredentials(params, attempt) {
 				uri: params.login.proCredentialsUrl,
 				headers: { 'Accept': 'application/json' },
 				json: true,
-			}, (error, response, body) => {
+			}, (error, _response, body) => {
 				if (error) return reject(error);
 
 				let creds = body[params.login.proCredentialsKey];
@@ -119,7 +119,7 @@ function login(params) {
 			resolve(`valid until ${session.tokenExpires}`);
 		} else {
 			return checkLvapi()
-				.then((lvapiVersion) => {
+				.then((_lvapiVersion) => {
 					return request({
 						method: 'POST',
 						uri: `https://${session.server}/auth/login`,
@@ -133,7 +133,7 @@ function login(params) {
 						},
 						json: true,
 						rejectUnauthorized: true,
-					}, (error, response, body) => {
+					}, (error, _response, body) => {
 						if (error) return reject(error);
 
 						if (body.data) {
@@ -163,7 +163,7 @@ function login(params) {
 										},
 										json: true,
 										rejectUnauthorized: true,
-									}, (error, response, body) => {
+									}, (error, _response, body) => {
 										if (error) return reject(error);
 
 										if (body.data) {
@@ -220,7 +220,7 @@ function getPatientData(params) {
 			},
 			json: true,
 			rejectUnauthorized: true,
-		}, (error, response, body) => {
+		}, (error, _response, body) => {
 			if (error) return reject(error);
 
 			if (body.ticket) { // received new authTicket
@@ -284,7 +284,7 @@ function getDataSources() {
 			},
 			json: true,
 			rejectUnauthorized: true,
-		}, (error, response, body) => {
+		}, (error, _response, body) => {
 			if (error) return reject(error);
 
 			if (body.ticket) { // received new authTicket
@@ -350,7 +350,7 @@ function generateReports() {
 				},
 				json: true,
 				rejectUnauthorized: true,
-			}, (error, response, body) => {
+			}, (error, _response, body) => {
 				if (error) return reject(error);
 
 				if (body.ticket) { // received new authTicket
@@ -388,7 +388,7 @@ function getChannels(url) {
 			},
 			json: true,
 			rejectUnauthorized: true,
-		}, (error, response, body) => {
+		}, (error, _response, body) => {
 			if (error) return reject(error);
 
 			if (body.data) {
@@ -412,7 +412,7 @@ function getReportUrl(url) {
 			headers: { 'User-Agent': agent, 'Accept': 'application/json' },
 			json: true,
 			rejectUnauthorized: true,
-		}, (error, response, body) => {
+		}, (error, _response, body) => {
 			if (error) return reject(error);
 
 			if (body.args) {
@@ -556,7 +556,7 @@ function uploadToNightscout(params, entries) {
 				body: entries,
 				json: true,
 				rejectUnauthorized: true,
-			}, (error, response, body) => {
+			}, (error, _response, body) => {
 				if (error) return reject(error);
 				else return resolve(body);
 			});
@@ -823,8 +823,8 @@ function saveSession() {
  * Restores session parameters from local file.
  */
 function restoreSession() {
-	return new Promise((resolve, reject) => {
-		return require('fs').readFile('session.json', 'utf8', (error, data) => {
+	return new Promise((resolve, _reject) => {
+		return require('fs').readFile('session.json', 'utf8', (_error, data) => {
 			if (data) {
 				try {
 					console.debug('reading stored session...');
