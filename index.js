@@ -795,7 +795,7 @@ if (!module.parent) {
 				});
 			break;
 
-		default:
+		default: {
 			let interval = readENV('LVCONNECT_INTERVAL', 30000);
 			let timer = null;
 			(function run() {
@@ -804,6 +804,7 @@ if (!module.parent) {
 				timer = setTimeout(run, interval);
 			})();
 			break;
+		}
 	}
 }
 
