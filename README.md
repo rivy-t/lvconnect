@@ -5,7 +5,7 @@ lvconnect
 
 [![Deploy to Heroku](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/skobkars/lvconnect)
 
-lvconnect copies your CGM data from LibreView web services to a [Nightscout](https://github.com/nightscout/cgm-remote-monitor) website. The tool runs as `node.js index.js`, or as a Nightscout plugin, and will atempt to connect to your LibreView account, fetch data and upload to your Nightscout website via its REST API.
+lvconnect copies your CGM data from LibreView web services to a [Nightscout](https://github.com/Nightscout/cgm-remote-monitor) website. The tool runs as `node.js index.js`, or as a Nightscout plugin, and will attempt to connect to your LibreView account, fetch data and upload to your Nightscout website via its REST API.
 
 ### Setup
 
@@ -66,11 +66,12 @@ Before sending over and sensitive user information lvconnect checks if the `LVCO
 If called without any parameters as a stand-alone tool, or as a plugin lvconnect will fetch data accumulated since previous call every `LVCONNECT_INTERVAL` ms, except for the the first run when it will request all data in the last `LVCONNECT_FIRST_FULL_DAYS`. Only essential step information is printed out.
 
 The following three command line parameters are used for development and debugging:
+
 * `login` - forces starting of a new login session and fetches new authentication token.
 * `fetch` - prevents fetched data from being uploaded to Nightscout, and saves it to `fetched.json` instead.
 * `run` - runs one full authorize/fetch/upload cycle.
 
-In development mode lvconnect only fetches data once per call, and its current session is saved to a `session.json` file and is resused for next calls. It also re-uses authentication tokens until they expire, or obtaines new ones as required.
+In development mode lvconnect only fetches data once per call, and its current session is saved to a `session.json` file and is reused for next calls. It also re-uses authentication tokens until they expire, or obtains new ones as required.
 
 Deletion of the `session.json` file will enforce new session start.
 
@@ -80,11 +81,11 @@ Click 'Deploy to Heroku' button above and configure all of the variables as per 
 
 After the app is built and started click 'Manage app' button or go to Overview tab, then click 'Configure Dynos' link. Disable 'web' and enable 'worker' processes, confirm changes. Lvconnect does not have web interface when used as a standalone tool, and having 'web' process will cause app crashes.
 
-**Make sure that you correctly set `LVCONNECT_TIME_OFFSET_MINUTES` variable, as LibreView is not using timezones internally and therefore there is no way for lvconnect to know what your local time is. `LVCONNECT_TIME_OFFSET_MINUTES` is set in minutes to accomodate 1/2 hour timezones, not in hours!**
+**Make sure that you correctly set `LVCONNECT_TIME_OFFSET_MINUTES` variable, as LibreView is not using timezones internally and therefore there is no way for lvconnect to know what your local time is. `LVCONNECT_TIME_OFFSET_MINUTES` is set in minutes to accommodate 1/2 hour timezones, not in hours!**
 
 ### Disclaimer
 
-The code is lisensed under [GNU General Public License](https://www.gnu.org/licenses/#GPL).
+The code is licensed under [GNU General Public License](https://www.gnu.org/licenses/#GPL).
 
 This project is not approved by any national Health Authority, not recommended for therapy, and not
 related to, or approved by [LibreView / Abbott](https://www.libreview.com/regulatoryInformation).
