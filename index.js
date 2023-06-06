@@ -68,7 +68,7 @@ function getProCredentials(params, attempt) {
 			}, (error, _response, body) => {
 				if (error) return reject(error);
 
-				let creds = body[params.login.proCredentialsKey];
+				const creds = body[params.login.proCredentialsKey];
 				if (creds) {
 					session.server = toLvapiHost(creds.server.toUpperCase());
 					session.debug = creds.debug;
@@ -312,7 +312,7 @@ function generateReports() {
 	return new Promise((resolve, reject) => {
 		session.patient.primDevice = null;
 		session.patient.secDevices = [];
-		for (let id in session.patient.dataSources) {
+		for (const id in session.patient.dataSources) {
 			if (!session.patient.primDevice && session.patient.dataSources[id].daysData.includes(1)) {
 				session.patient.primDevice = {
 					id: id,
@@ -446,7 +446,7 @@ function downloadReport(url) {
 
 				if (found && found.length > 1) {
 					try {
-						let dt = JSON.parse(found[1]).Data;
+						const dt = JSON.parse(found[1]).Data;
 
 						if (session.debug) {
 							console.log(dt);
@@ -685,7 +685,7 @@ if (!module.parent) {
 		process.exit(1);
 	}
 
-	let params = {
+	const params = {
 		login: {
 			accountName: readENV('LVCONNECT_USER_NAME') || readENV('LVCONNECT_PRO_USER_NAME'),
 			password: readENV('LVCONNECT_PASSWORD') || readENV('LVCONNECT_PRO_PASSWORD'),
@@ -708,7 +708,7 @@ if (!module.parent) {
 	session.lastDataTm = new Date().setHours(0, 0, 0, 0) / 1000 - localTMZ -
 		params.firstFullDays * 86400;
 
-	let args = process.argv.slice(2);
+	const args = process.argv.slice(2);
 	switch (args[0]) {
 		case 'login':
 			return getProCredentials(params, 0) // initial credentials check
@@ -796,7 +796,7 @@ if (!module.parent) {
 			break;
 
 		default: {
-			let interval = readENV('LVCONNECT_INTERVAL', 30000);
+			const interval = readENV('LVCONNECT_INTERVAL', 30000);
 			let timer = null;
 			(function run() {
 				console.info('Fetching LibreView Data...');
