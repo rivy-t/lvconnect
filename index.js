@@ -28,13 +28,45 @@
 
 const Promise = require('promise'),
 	promiseRetry = require('promise-retry'),
-	request = require('request'),
+	// request = require('request'),
 	_qs = require('querystring'),
 	crypto = require('crypto'),
 	meta = require('./package.json'),
 	agent = `${meta.name}/${meta.version}`,
 	min_secret_length = 12;
 const util = require('util');
+
+const fs = require('fs');
+const process = require('process');
+
+// import fetch, { blobFrom, Response } from 'node-fetch';
+// const nodeFetch = require('node-fetch');
+const nodeFetch = (async function () {
+	return await import('node-fetch');
+})();
+
+const base = process.cwd();
+
+async function fetchWrapper(url, options) {
+	process.stderr.write(util.format(`url: ${url}`) + '\n');
+	process.stderr.write(util.format(`base: ${base}`) + '\n');
+	const parsedUrl = new URL(url, base);
+	process.stderr.write(util.format(`parsedURL: ${parsedUrl}`) + '\n');
+	if (parsedUrl.protocol === 'file:') {
+		// If the URL starts with 'file://', read the file from the local file system
+		const filePath = decodeURIComponent(parsedUrl.pathname);
+
+		if (!fs.existsSync(filePath)) {
+			return new Response(null, { status: 404, statusText: 'NOT FOUND' });
+		}
+
+		const blob = await blobFrom(filePath, { type: 'application/octet-stream' });
+		return new Response(blob, { status: 200, statusText: 'OK', url });
+	} else {
+		// For all other requests, use node-fetch as usual
+		return nodeFetch(url, options);
+	}
+}
 
 const timeZoneName = Intl.DateTimeFormat().resolvedOptions().timeZone;
 const timeZoneAbbr = (new Date()).toLocaleTimeString('en', { timeZoneName: 'short' }).split(' ')[2];
@@ -60,9 +92,9 @@ function getProCredentials(params, attempt) {
 			// Not the first attempt to login, checking if parameters change?
 			return resolve(true);
 		} else {
-			return request({
+			return fetchWrapper(params.login.proCredentialsUrl, {
 				method: 'GET',
-				uri: params.login.proCredentialsUrl,
+				// uri: params.login.proCredentialsUrl,
 				headers: { 'Accept': 'application/json' },
 				json: true,
 			}, (error, _response, body) => {
@@ -95,7 +127,7 @@ function getProCredentials(params, attempt) {
  */
 function checkLvapi() {
 	return new Promise((resolve, reject) => {
-		return request({
+		return fetchWrapper({
 			method: 'OPTIONS',
 			uri: `https://${session.server}/auth/login`,
 			headers: { 'Accept': '*/*' },
@@ -120,7 +152,7 @@ function login(params) {
 		} else {
 			return checkLvapi()
 				.then((_lvapiVersion) => {
-					return request({
+					return fetchWrapper({
 						method: 'POST',
 						uri: `https://${session.server}/auth/login`,
 						headers: { 'User-Agent': agent, 'Accept': 'application/json' },
@@ -153,7 +185,7 @@ function login(params) {
 									console.debug('logging successful:', session.user.id);
 									resolve('renewed');
 								} else { // otherwise get user data
-									return request({
+									return fetchWrapper({
 										method: 'GET',
 										uri: `https://${session.server}/user`,
 										headers: {
@@ -210,7 +242,7 @@ function login(params) {
  */
 function getPatientData(params) {
 	return new Promise((resolve, reject) => {
-		return request({
+		return fetchWrapper({
 			method: 'GET',
 			uri: `https://${session.server}/patients/${params.login.patientId}`,
 			headers: {
@@ -274,7 +306,7 @@ function authorize(params, attempt) {
 
 function getDataSources() {
 	return new Promise((resolve, reject) => {
-		return request({
+		return fetchWrapper({
 			method: 'GET',
 			uri: `https://${session.server}${session.uriPrefix}/reportSettings`,
 			headers: {
@@ -324,7 +356,7 @@ function generateReports() {
 			}
 		}
 		if (session.patient.primDevice) {
-			return request({
+			return fetchWrapper({
 				method: 'POST',
 				uri: `https://${session.server}/reports`,
 				headers: {
@@ -378,7 +410,7 @@ function generateReports() {
 
 function getChannels(url) {
 	return new Promise((resolve, reject) => {
-		return request({
+		return fetchWrapper({
 			method: 'GET',
 			uri: url,
 			headers: {
@@ -406,7 +438,7 @@ function getChannels(url) {
 
 function getReportUrl(url) {
 	return new Promise((resolve, reject) => {
-		return request({
+		return fetchWrapper({
 			method: 'GET',
 			uri: url,
 			headers: { 'User-Agent': agent, 'Accept': 'application/json' },
@@ -433,7 +465,7 @@ function downloadReport(url) {
 		if (session.debug) {
 			console.log('downloading report...');
 		}
-		return request({
+		return fetchWrapper({
 			method: 'GET',
 			uri: `${url}?session=${session.authToken}`,
 			headers: { 'User-Agent': agent, 'Accept': 'text/html' },
@@ -470,7 +502,7 @@ function downloadReport(url) {
 /**
  * Fetch data from LV API server through DailyLog report.
  */
-function fetch() {
+function fetchLVData() {
 	return getDataSources()
 		.then(() => {
 			return generateReports();
@@ -543,7 +575,7 @@ function uploadToNightscout(params, entries) {
 			params.callback(null, entries);
 		} else if (params.nightscout.endpoint) {
 			console.debug(`uploading to Nightscout: ${params.nightscout.endpoint}`);
-			return request({
+			return fetchWrapper({
 				method: 'POST',
 				uri: `${params.nightscout.endpoint}/api/v1/entries.json`,
 				headers: {
@@ -614,7 +646,7 @@ function flatDeep(arr, d = 1) {
 //   let body = { uploaderBattery: false };
 //   let req = { uri: url, body: body, json: true, headers: headers, method: "POST"
 //             , rejectUnauthorized: false };
-//   return request(req, then);
+//   return fetchWrapper(req, then);
 // }
 
 /**
@@ -644,7 +676,7 @@ function engine(params) {
 					console.debug(`lvconnect: attempt to login, fetch and upload data # ${n}`);
 					return authorize(params, n)
 						.then(() => {
-							return fetch(params);
+							return fetchLVData(params);
 						})
 						.catch(retry);
 				});
@@ -741,7 +773,7 @@ if (!module.parent) {
 					);
 				})
 				.then(() => {
-					return fetch(params);
+					return fetchLVData(params);
 				})
 				.then((lv) => {
 					return saveData(lv);
@@ -772,7 +804,7 @@ if (!module.parent) {
 					);
 				})
 				.then(() => {
-					return fetch(params);
+					return fetchLVData(params);
 				})
 				.then((lv) => {
 					return saveData(lv);
