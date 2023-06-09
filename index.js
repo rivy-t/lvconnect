@@ -29,16 +29,28 @@
 const Promise = require('promise'),
 	promiseRetry = require('promise-retry'),
 	request = require('request'),
-	_qs = require('querystring'),
+	// _qs = require('querystring'),
 	crypto = require('crypto'),
 	meta = require('./package.json'),
 	agent = `${meta.name}/${meta.version}`,
 	min_secret_length = 12;
-const util = require('util');
+
+const $fs = require('fs');
+const $util = require('util');
+const $path = require('path');
+const $stripJSON = require('strip-json-comments');
+const $xdg = require('xdg-app-paths/cjs')({ name: meta.name });
+
+const configDir = $xdg.config();
+process.stderr.write($util.format(`configDir: ${configDir}`) + '\n');
 
 const timeZoneName = Intl.DateTimeFormat().resolvedOptions().timeZone;
 const timeZoneAbbr = (new Date()).toLocaleTimeString('en', { timeZoneName: 'short' }).split(' ')[2];
 const localTMZ = readENV('LVCONNECT_TIME_OFFSET_MINUTES', new Date().getTimezoneOffset()) * 60;
+process.stderr.write($util.format(`timeZoneAbbr: ${timeZoneAbbr}`) + '\n');
+process.stderr.write($util.format(`timeZoneName: ${timeZoneName}`) + '\n');
+process.stderr.write($util.format(`localTMZ: ${localTMZ}`) + '\n');
+
 let session = {
 	server: toLvapiHost(readENV('LVCONNECT_SERVER', 'api.libreview.io')),
 	uriPrefix: '',
@@ -46,9 +58,6 @@ let session = {
 	user: {},
 	patient: {},
 };
-process.stderr.write(util.format(`timeZoneAbbr: ${timeZoneAbbr}`) + '\n');
-process.stderr.write(util.format(`timeZoneName: ${timeZoneName}`) + '\n');
-process.stderr.write(util.format(`localTMZ: ${localTMZ}`) + '\n');
 
 /**
  * Downloads credentials.json from url if it is not the first attempt to log in
@@ -703,6 +712,42 @@ if (!module.parent) {
 		firstFullDays: readENV('LVCONNECT_FIRST_FULL_DAYS', 90),
 		timeOffsetMinutes: readENV('LVCONNECT_TIME_OFFSET_MINUTES', new Date().getTimezoneOffset()),
 	};
+
+	const credentialsLocalFile = $path.join(configDir, 'credentials.json');
+	const credentials = ((from) => {
+		if ($fs.existsSync(from)) {
+			return JSON.parse($stripJSON($fs.readFileSync(from, { encoding: 'utf8' })));
+		}
+		return undefined;
+	})(credentialsLocalFile);
+	// process.stderr.write($util.format(`credentials: ${JSON.stringify(credentials)}`) + '\n');
+	if (credentials) {
+		const key = readENV('LVCONNECT_PRO_CREDENTIALS_KEY') ?? Object.keys(credentials)[0];
+		session.server = (credentials[key]
+				.server
+			? toLvapiHost(credentials[key].server.toUpperCase())
+			: undefined) ?? session.server;
+		session.debug = credentials[key].debug;
+		// for params, ENV variables override credentials.json
+		process.stderr.write(
+			$util.format(`params.login.accountName: ${params.login.accountName}`) + '\n',
+		);
+		params.login.accountName = params.login.accountName ?? credentials[key].accountName;
+		process.stderr.write(
+			$util.format(`params.login.accountName: ${params.login.accountName}`) + '\n',
+		);
+		params.login.password = params.login.password ?? credentials[key].password;
+		params.login.trustedDeviceToken = params.login.trustedDeviceToken ??
+			credentials[key].trustedDeviceToken;
+		if (session.debug) {
+			console.log(session);
+			console.log(params);
+		}
+	}
+
+	process.stderr.write($util.format(`params: ${JSON.stringify(params)}`) + '\n');
+
+	// process.exit(1);
 
 	// set initial fetch time in case this is a first run
 	session.lastDataTm = new Date().setHours(0, 0, 0, 0) / 1000 - localTMZ -
